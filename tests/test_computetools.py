@@ -15,7 +15,7 @@ def test_init_should_create_object():
 
 def test_push():
     """Tests the functionality of the push method"""
-    input_data = {"Clock": {"start_time": 0, "end_time": 1, "dt": 0.1},
+    input_data = {"Clock": {"start_time": 0, "end_time": 1, "dt": 1e-9},
                   "type": "BorisPush",
                   "Grid": {"N": 10, "min": 20, "max": 30},
                   "PhysicsModules": {}}
