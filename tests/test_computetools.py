@@ -22,7 +22,16 @@ def test_push():
     owner = Simulation(input_data)
     owner.prepare_simulation()
     push_example = BorisPush(owner, input_data)
-    arr = np.ndarray(shape=(2, 2), dtype=float)
-    arr.fill(1)
-    push_example.push(arr, arr, 1, 1, arr, arr)
-    assert True
+    charge = 1.6022e-19
+    mass = 1.6726e-27
+    E = np.zeros(3)
+    B = np.zeros(3)
+    x0 = np.array([[0, 0, 0.0]], dtype=np.float)
+    v0 = np.array([[0, 0, 3.0e6]], dtype=np.float)
+    p0 = mass * v0
+    dt = 1e-9
+    Nt = 10
+    xfinal = v0 * Nt * dt
+    for i in range(Nt):
+        push_example.push(x0, p0, charge, mass, E, B)
+    assert np.allclose(x0, xfinal)
