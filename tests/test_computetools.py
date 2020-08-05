@@ -34,4 +34,4 @@ def test_push():
     xfinal = v0 * Nt * dt
     for i in range(Nt):
         push_example.push(x0, p0, charge, mass, E, B)
-    assert np.allclose(x0, xfinal)
+    assert np.allclose(x0, xfinal, rtol=1.e-4)
