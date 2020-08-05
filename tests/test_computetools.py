@@ -37,9 +37,9 @@ def test_push():
     assert np.allclose(x_i, xfinal, rtol=1e-4)
     x_i = np.array([[0, 0, 0.0]], dtype=np.float)
     p_i = 0 * v_i
-    E = np.array([[0, 0, 1e100]], dtype=np.float)
-    B = np.array([[0, 0, 1e100]], dtype=np.float)
+    E = np.array([[0, 0, 1e10]], dtype=np.float)
+    B = np.array([[0, 0, 1e10]], dtype=np.float)
     for i in range(N):
         push_example.push(x_i, p_i, charge, mass, E, B)
     check = np.array([[0, 0, 3.0]], dtype=np.float)
-    assert np.allclose(x_i, check, rtol=1e-3)
+    assert np.allclose(x_i, check, rtol=3e-2)
