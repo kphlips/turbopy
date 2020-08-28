@@ -4,12 +4,14 @@ This integration test simply runs the particle_in_field app and compares the out
 to "good" output.
 """
 import numpy as np
+import shutil
 
-def test_pif(pif_run):
+
+def test_pif(pif_run, tmp_path):
     for filename in ['e_0.5', 'grid', 'particle_p', 'particle_x', 'time']:
         ref_data = np.genfromtxt(f'tests/fixtures/particle_in_field/output/{filename}.csv',
                                  delimiter=',')
-        tmp_data = np.genfromtxt(f'tmp_path/particle_in_field/output/{filename}.csv',
+        tmp_data = np.genfromtxt(f'pif_temp_output/{filename}.csv',
                                  delimiter=',')
         assert (np.allclose(ref_data, tmp_data, rtol=1e-05, atol=1e-08))
-
+    shutil.move("pif_temp_output", tmp_path)
