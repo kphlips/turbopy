@@ -28,7 +28,7 @@ pusher = "ForwardEuler"
 # Add the diagnostics
 [Diagnostics]
 # First add some default diagnostic parameters
-directory = "pif_temp_output"
+directory = ""
 output_type = "csv"
 
 [Diagnostics.grid]
