@@ -197,7 +197,6 @@ class Simulation:
         print("Initializing PhysicsModules...")
         for m in self.physics_modules:
             m.exchange_resources()
-        for m in self.physics_modules:
             m.initialize()
 
         print("Initializing Diagnostics...")
