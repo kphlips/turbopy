@@ -89,17 +89,16 @@ def test_read_grid_from_input_should_set_grid_attr_when_called(simple_sim):
     assert simple_sim.grid.r_min == 0
     assert simple_sim.grid.r_max == 1
 
-def test_prepare_simulation(simple_sim):
-    """Tests that the prepare_simulation method operates the same as if the physics modules 
-    exchange resources and are initialized seperately"""
+def test_prepare_simulation_physics_modules(simple_sim):
+    """Tests that prepare_simulation correctly initializes the physics_modules"""
     other_sim = simple_sim
     simple_sim.prepare_simulation()
-    for m in other_sim.physics_modules:
-        m.exchange_resources()
-    for m in other_sim.physics_modules:
-        m.initialize()
-    for i in range(len(simple_sim.physics_modules)):
-        assert simple_sim.physics_modules[i] == other_sim.physics_modules[i]
+    for i in other_sim.physics_modules:
+        i.exchange_resources()
+    for j in other_sim.physics_modules:
+        j.initialize()
+    for k in range(len(simple_sim.physics_modules)):
+        assert simple_sim.physics_modules[k] == other_sim.physics_modules[k]
 
 
 
