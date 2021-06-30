@@ -89,19 +89,39 @@ def test_read_grid_from_input_should_set_grid_attr_when_called(simple_sim):
     assert simple_sim.grid.r_min == 0
     assert simple_sim.grid.r_max == 1
 
+class AdvancedModule(PhysicsModule):
+    """More complex PhysicsModule subclass for testing"""
+    def __init__(self, owner: Simulation, input_data : dict):
+        super().__init__(owner, input_data)
+        self.attr1 = 1.0
+        self.attr2 = 2.0
+        self.attr3 = 3.0
+    
+    def update(self):
+        pass
+    
+    def inspect_resource(self, resource: dict):
+        for attribute in resource:
+            self.__setattr__(attribute, resource[attribute])
+
+PhysicsModule.register("AdvancedModule", AdvancedModule)
+
 def test_prepare_simulation_physics_modules(simple_sim):
     """Tests that prepare_simulation correctly initializes the physics_modules"""
-    other_sim = Simulation(simple_sim.input_data)
-    assert id(simple_sim) != id(other_sim)
-    other_sim.read_modules_from_input()
-    for i in other_sim.physics_modules:
+    simple_sim_input = simple_sim.input_data
+    simple_sim_input["PhysicsModules"]["AdvancedModule"] = {}
+    first_sim = Simulation(simple_sim_input)
+    second_sim = Simulation(simple_sim_input)
+    assert id(first_sim) != id(second_sim)
+    first_sim.read_modules_from_input()
+    for i in first_sim.physics_modules:
         i.exchange_resources()
-    for j in other_sim.physics_modules:
+    for j in first_sim.physics_modules:
         j.initialize()
-    simple_sim.prepare_simulation()
-    for k in range(len(simple_sim.physics_modules)):
-        assert id(simple_sim.physics_modules[k]) != id(other_sim.physics_modules[k])
-        assert str(simple_sim.physics_modules[k]) == str(other_sim.physics_modules[k])
+    second_sim.prepare_simulation()
+    for k in range(len(first_sim.physics_modules)):
+        assert id(first_sim.physics_modules[k]) != id(second_sim.physics_modules[k])
+        assert str(first_sim.physics_modules[k]) == str(second_sim.physics_modules[k])
 
 def test_gridless_simulation(tmp_path):
     """Test a gridless simulation"""
