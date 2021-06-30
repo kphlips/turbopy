@@ -91,16 +91,17 @@ def test_read_grid_from_input_should_set_grid_attr_when_called(simple_sim):
 
 def test_prepare_simulation_physics_modules(simple_sim):
     """Tests that prepare_simulation correctly initializes the physics_modules"""
-    other_sim = simple_sim
-    simple_sim.prepare_simulation()
+    other_sim = Simulation(simple_sim.input_data)
+    assert id(simple_sim) != id(other_sim)
+    other_sim.read_modules_from_input()
     for i in other_sim.physics_modules:
         i.exchange_resources()
     for j in other_sim.physics_modules:
         j.initialize()
+    simple_sim.prepare_simulation()
     for k in range(len(simple_sim.physics_modules)):
-        assert simple_sim.physics_modules[k] == other_sim.physics_modules[k]
-
-
+        assert id(simple_sim.physics_modules[k]) != id(other_sim.physics_modules[k])
+        assert str(simple_sim.physics_modules[k]) == str(other_sim.physics_modules[k])
 
 def test_gridless_simulation(tmp_path):
     """Test a gridless simulation"""
