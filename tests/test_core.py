@@ -96,13 +96,6 @@ class AdvancedModule(PhysicsModule):
         self.attr1 = 1.0
         self.attr2 = 2.0
         self.attr3 = 3.0
-    
-    def update(self):
-        pass
-    
-    def inspect_resource(self, resource: dict):
-        for attribute in resource:
-            self.__setattr__(attribute, resource[attribute])
 
 PhysicsModule.register("AdvancedModule", AdvancedModule)
 
