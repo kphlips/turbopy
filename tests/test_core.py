@@ -109,6 +109,9 @@ def test_prepare_simulation_physics_modules(simple_sim):
     first_sim.read_modules_from_input()
     for i in first_sim.physics_modules:
         i.exchange_resources()
+    for i in range (1,4):
+        assert first_sim.physics_modules[0].__dict__[f"AdvancedModule_attr{i}"] == \
+               first_sim.physics_modules[1].__dict__[f"attr{i}"]
     for j in first_sim.physics_modules:
         j.initialize()
     second_sim.prepare_simulation()
