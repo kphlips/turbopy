@@ -107,17 +107,16 @@ def test_prepare_simulation_physics_modules(simple_sim):
     second_sim = Simulation(simple_sim_input)
     assert id(first_sim) != id(second_sim)
     first_sim.read_modules_from_input()
-    for i in first_sim.physics_modules:
-        i.exchange_resources()
+    for first_modules in first_sim.physics_modules:
+        first_modules.exchange_resources()
     for i in range (1,4):
         assert first_sim.physics_modules[0].__dict__[f"AdvancedModule_attr{i}"] == \
                first_sim.physics_modules[1].__dict__[f"attr{i}"]
-    for j in first_sim.physics_modules:
-        j.initialize()
+    for first_modules in first_sim.physics_modules:
+        first_modules.initialize()
     second_sim.prepare_simulation()
-    for k in range(len(first_sim.physics_modules)):
-        assert id(first_sim.physics_modules[k]) != id(second_sim.physics_modules[k])
-        assert str(first_sim.physics_modules[k]) == str(second_sim.physics_modules[k])
+    assert id(first_sim.physics_modules) != id(second_sim.physics_modules)
+    assert str(first_sim.physics_modules) == str(second_sim.physics_modules)
 
 def test_gridless_simulation(tmp_path):
     """Test a gridless simulation"""
