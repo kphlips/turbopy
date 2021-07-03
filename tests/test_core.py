@@ -109,48 +109,45 @@ class AdvancedModule(PhysicsModule):
 
 PhysicsModule.register("AdvancedModule", AdvancedModule)
 
-def test_physics_module_exchange_resources_should_share_attributes(simple_sim):
+@pytest.fixture(name = "advanced_sim")
+def adv_sin_fixt(simple_sim):
+    simple_sim.input_data["PhysicsModules"]["AdvancedModule"] = {}
+    advanced_sim = Simulation(simple_sim.input_data)
+    advanced_sim.read_modules_from_input()
+    return advanced_sim
+
+def test_physics_module_exchange_resources_should_share_attributes(advanced_sim):
     """Tests that the exchange_resources method properly shares attributes with another physics_module"""
-    simple_sim.input_data["PhysicsModules"]["AdvancedModule"] = {}
-    simple_sim = Simulation(simple_sim.input_data)
-    simple_sim.read_modules_from_input()
-    assert simple_sim.physics_modules[0]._input_data["name"] == "ExampleModule"
-    assert simple_sim.physics_modules[1]._input_data["name"] == "AdvancedModule"
-    for m in simple_sim.physics_modules:
+    assert advanced_sim.physics_modules[0]._input_data["name"] == "ExampleModule"
+    assert advanced_sim.physics_modules[1]._input_data["name"] == "AdvancedModule"
+    for m in advanced_sim.physics_modules:
         m.exchange_resources()
     for i in range (1,4):
-        assert simple_sim.physics_modules[0].__dict__[f"AdvancedModule_attr{i}"] == \
-               simple_sim.physics_modules[1].__dict__[f"attr{i}"]
+        assert advanced_sim.physics_modules[0].__dict__[f"AdvancedModule_attr{i}"] == \
+               advanced_sim.physics_modules[1].__dict__[f"attr{i}"]
 
-def test_physics_module_initialize_should_change_attributes(simple_sim):
+def test_physics_module_initialize_should_change_attributes(advanced_sim):
     """Tests that the initialize function properly changes the attributes of a physics_module"""
-    del simple_sim.input_data["PhysicsModules"]["ExampleModule"]
-    simple_sim.input_data["PhysicsModules"]["AdvancedModule"] = {}
-    initialized_sim = Simulation(simple_sim.input_data)
-    non_initialized_sim = Simulation(simple_sim.input_data)
-    initialized_sim.read_modules_from_input()
+    non_initialized_sim = Simulation(advanced_sim.input_data)
     non_initialized_sim.read_modules_from_input()
-    for m in initialized_sim.physics_modules:
+    for m in advanced_sim.physics_modules:
         m.initialize()
+    assert advanced_sim.physics_modules[1]._input_data["name"] == "AdvancedModule"
     for i in range (1,4):
-        assert non_initialized_sim.physics_modules[0].__dict__[f"attr{i}"] + 3 == \
-               initialized_sim.physics_modules[0].__dict__[f"attr{i}"]
+        assert non_initialized_sim.physics_modules[1].__dict__[f"attr{i}"] + 3 == \
+               advanced_sim.physics_modules[1].__dict__[f"attr{i}"]
 
-def test_prepare_simulation_physics_modules(simple_sim):
+def test_prepare_simulation_physics_modules(advanced_sim):
     """Tests that prepare_simulation correctly shares resources and initializes the physics_modules"""
-    simple_sim_input = simple_sim.input_data
-    simple_sim_input["PhysicsModules"]["AdvancedModule"] = {}
-    first_sim = Simulation(simple_sim_input)
-    second_sim = Simulation(simple_sim_input)
-    assert id(first_sim) != id(second_sim)
-    first_sim.read_modules_from_input()
-    for m in first_sim.physics_modules:
+    prepared_sim = Simulation(advanced_sim.input_data)
+    assert id(advanced_sim) != id(prepared_sim)
+    for m in advanced_sim.physics_modules:
         m.exchange_resources()
-    for m in first_sim.physics_modules:
+    for m in advanced_sim.physics_modules:
         m.initialize()
-    second_sim.prepare_simulation()
-    assert id(first_sim.physics_modules) != id(second_sim.physics_modules)
-    assert str(first_sim.physics_modules) == str(second_sim.physics_modules)
+    prepared_sim.prepare_simulation()
+    assert id(advanced_sim.physics_modules) != id(prepared_sim.physics_modules)
+    assert str(advanced_sim.physics_modules) == str(prepared_sim.physics_modules)
 
 def test_gridless_simulation(tmp_path):
     """Test a gridless simulation"""
