@@ -96,24 +96,58 @@ class AdvancedModule(PhysicsModule):
         self.attr1 = 1.0
         self.attr2 = 2.0
         self.attr3 = 3.0
+    
+    def initialize (self):
+        for a in self.__dict__.items():
+            if "attr" in a[0]:
+                self.__dict__[a[0]] += 3
+
+    def inspect_resource(self, resource):
+        for i in range (1, 4):
+            if f"AdvancedModule_attr{i}" in resource:
+                resource[f"AdvancedModule_attr{i}"] == self.__dict__[f"attr{i}"]
 
 PhysicsModule.register("AdvancedModule", AdvancedModule)
 
+def test_physics_module_exchange_resources_should_share_attributes(simple_sim):
+    """Tests that the exchange_resources method properly shares attributes with another physics_module"""
+    simple_sim.input_data["PhysicsModules"]["AdvancedModule"] = {}
+    simple_sim = Simulation(simple_sim.input_data)
+    simple_sim.read_modules_from_input()
+    assert simple_sim.physics_modules[0]._input_data["name"] == "ExampleModule"
+    assert simple_sim.physics_modules[1]._input_data["name"] == "AdvancedModule"
+    for m in simple_sim.physics_modules:
+        m.exchange_resources()
+    for i in range (1,4):
+        assert simple_sim.physics_modules[0].__dict__[f"AdvancedModule_attr{i}"] == \
+               simple_sim.physics_modules[1].__dict__[f"attr{i}"]
+
+def test_physics_module_initialize_should_change_attributes(simple_sim):
+    """Tests that the initialize function properly changes the attributes of a physics_module"""
+    del simple_sim.input_data["PhysicsModules"]["ExampleModule"]
+    simple_sim.input_data["PhysicsModules"]["AdvancedModule"] = {}
+    initialized_sim = Simulation(simple_sim.input_data)
+    non_initialized_sim = Simulation(simple_sim.input_data)
+    initialized_sim.read_modules_from_input()
+    non_initialized_sim.read_modules_from_input()
+    for m in initialized_sim.physics_modules:
+        m.initialize()
+    for i in range (1,4):
+        assert non_initialized_sim.physics_modules[0].__dict__[f"attr{i}"] + 3 == \
+               initialized_sim.physics_modules[0].__dict__[f"attr{i}"]
+
 def test_prepare_simulation_physics_modules(simple_sim):
-    """Tests that prepare_simulation correctly initializes the physics_modules"""
+    """Tests that prepare_simulation correctly shares resources and initializes the physics_modules"""
     simple_sim_input = simple_sim.input_data
     simple_sim_input["PhysicsModules"]["AdvancedModule"] = {}
     first_sim = Simulation(simple_sim_input)
     second_sim = Simulation(simple_sim_input)
     assert id(first_sim) != id(second_sim)
     first_sim.read_modules_from_input()
-    for first_modules in first_sim.physics_modules:
-        first_modules.exchange_resources()
-    for i in range (1,4):
-        assert first_sim.physics_modules[0].__dict__[f"AdvancedModule_attr{i}"] == \
-               first_sim.physics_modules[1].__dict__[f"attr{i}"]
-    for first_modules in first_sim.physics_modules:
-        first_modules.initialize()
+    for m in first_sim.physics_modules:
+        m.exchange_resources()
+    for m in first_sim.physics_modules:
+        m.initialize()
     second_sim.prepare_simulation()
     assert id(first_sim.physics_modules) != id(second_sim.physics_modules)
     assert str(first_sim.physics_modules) == str(second_sim.physics_modules)
