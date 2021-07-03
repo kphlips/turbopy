@@ -110,7 +110,7 @@ class AdvancedModule(PhysicsModule):
 PhysicsModule.register("AdvancedModule", AdvancedModule)
 
 @pytest.fixture(name = "advanced_sim")
-def adv_sin_fixt(simple_sim):
+def adv_sim_fixt(simple_sim):
     simple_sim.input_data["PhysicsModules"]["AdvancedModule"] = {}
     advanced_sim = Simulation(simple_sim.input_data)
     advanced_sim.read_modules_from_input()
