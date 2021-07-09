@@ -89,65 +89,61 @@ def test_read_grid_from_input_should_set_grid_attr_when_called(simple_sim):
     assert simple_sim.grid.r_min == 0
     assert simple_sim.grid.r_max == 1
 
-class AdvancedModule(PhysicsModule):
-    """More complex PhysicsModule subclass for testing"""
-    def __init__(self, owner: Simulation, input_data : dict):
+class ReceivingModule(PhysicsModule):
+    """Example PhysicsModule subclass for tests"""
+    def __init__(self, owner: Simulation, input_data: dict):
         super().__init__(owner, input_data)
-        self.attr1 = 1.0
-        self.attr2 = 2.0
-        self.attr3 = 3.0
+        self.data = None
+
+    def inspect_resource(self, resource: dict):
+        if 'shared' in resource:
+            self.data = resource['shared']
     
-    def initialize (self):
-        for a in self.__dict__.items():
-            if "attr" in a[0]:
-                self.__dict__[a[0]] += 3
+    def initialize(self):
+        # if resources are shared correctly, then this list will be accessible
+        print(f'The first data item is {self.data[0]}')
 
-    def inspect_resource(self, resource):
-        for i in range (1, 4):
-            if f"AdvancedModule_attr{i}" in resource:
-                resource[f"AdvancedModule_attr{i}"] == self.__dict__[f"attr{i}"]
+    def update(self):
+        pass
 
-PhysicsModule.register("AdvancedModule", AdvancedModule)
+class SharingModule(PhysicsModule):
+    """Example PhysicsModule subclass for tests"""
+    def __init__(self, owner: Simulation, input_data: dict):
+        super().__init__(owner, input_data)
+        self.data = ['test']
 
-@pytest.fixture(name = "advanced_sim")
-def adv_sim_fixt(simple_sim):
-    simple_sim.input_data["PhysicsModules"]["AdvancedModule"] = {}
-    advanced_sim = Simulation(simple_sim.input_data)
-    advanced_sim.read_modules_from_input()
-    return advanced_sim
+    def exchange_resources(self):
+        self.publish_resource({'shared': self.data})
 
-def test_physics_module_exchange_resources_should_share_attributes(advanced_sim):
-    """Tests that the exchange_resources method properly shares attributes with another physics_module"""
-    assert advanced_sim.physics_modules[0]._input_data["name"] == "ExampleModule"
-    assert advanced_sim.physics_modules[1]._input_data["name"] == "AdvancedModule"
-    for m in advanced_sim.physics_modules:
-        m.exchange_resources()
-    for i in range (1,4):
-        assert advanced_sim.physics_modules[0].__dict__[f"AdvancedModule_attr{i}"] == \
-               advanced_sim.physics_modules[1].__dict__[f"attr{i}"]
+    def update(self):
+        pass
 
-def test_physics_module_initialize_should_change_attributes(advanced_sim):
-    """Tests that the initialize function properly changes the attributes of a physics_module"""
-    non_initialized_sim = Simulation(advanced_sim.input_data)
-    non_initialized_sim.read_modules_from_input()
-    for m in advanced_sim.physics_modules:
-        m.initialize()
-    assert advanced_sim.physics_modules[1]._input_data["name"] == "AdvancedModule"
-    for i in range (1,4):
-        assert non_initialized_sim.physics_modules[1].__dict__[f"attr{i}"] + 3 == \
-               advanced_sim.physics_modules[1].__dict__[f"attr{i}"]
+PhysicsModule.register("Receiving", ReceivingModule)
+PhysicsModule.register("Sharing", SharingModule)
 
-def test_prepare_simulation_physics_modules(advanced_sim):
-    """Tests that prepare_simulation correctly shares resources and initializes the physics_modules"""
-    prepared_sim = Simulation(advanced_sim.input_data)
-    assert id(advanced_sim) != id(prepared_sim)
-    for m in advanced_sim.physics_modules:
-        m.exchange_resources()
-    for m in advanced_sim.physics_modules:
-        m.initialize()
-    prepared_sim.prepare_simulation()
-    assert id(advanced_sim.physics_modules) != id(prepared_sim.physics_modules)
-    assert str(advanced_sim.physics_modules) == str(prepared_sim.physics_modules)
+# Simulation class test methods
+@pytest.fixture(name='share_sim')
+def sim_fixt():
+    """Pytest fixture for basic simulation class"""
+    dic = {"Grid": {"N": 2, "r_min": 0, "r_max": 1},
+           "Clock": {"start_time": 0,
+                     "end_time": 10,
+                     "num_steps": 1},
+           "PhysicsModules": {
+               "Receiving": {},
+               "Sharing": {}
+           },
+           }
+    return Simulation(dic)
+
+def test_that_simulation_is_created(share_sim):
+    assert share_sim.physics_modules == []
+
+def test_that_sim_is_prepared_correctly(share_sim):
+    share_sim.prepare_simulation()
+    assert len(share_sim.physics_modules) == 2
+    assert len(share_sim.physics_modules[0].data) == 1
+    assert id(share_sim.physics_modules[0].data) == id(share_sim.physics_modules[1].data)
 
 def test_gridless_simulation(tmp_path):
     """Test a gridless simulation"""
